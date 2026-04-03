@@ -1,8 +1,13 @@
 
 import http.server
-#import ssl
 import os.path
 import sys
+
+PY_VERSION =  float(sys.version[:4])
+
+if PY_VERSION < 3.14:
+    import ssl
+
 import urllib
 import html
 import io
@@ -103,21 +108,25 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         return f
 
-host     = '192.168.1.104'
+host     = '192.168.1.100'
 port     = 443
 password = get_passwd_in_env()
 
-# print(password)
-httpd = http.server.HTTPServer((host,port), 
+if PY_VERSION < 3.14:
+    httpd = http.server.HTTPServer((host,port), 
+            Handler,
+            True)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
+    httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
+
+else:
+    httpd = http.server.HTTPServer((host,port), 
             Handler,
             True,
             keyfile='key.pem',
             certfile='cert.pem',
             password=password)
 
-
-#context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-#context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
-#httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
 httpd.serve_forever()
 
