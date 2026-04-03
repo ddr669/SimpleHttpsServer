@@ -108,7 +108,7 @@ port     = 443
 password = get_passwd_in_env()
 
 # print(password)
-httpd = http.server.HTTPSServer((host,port), 
+httpd = http.server.HTTPServer((host,port), 
             Handler,
             True,
             keyfile='key.pem',
